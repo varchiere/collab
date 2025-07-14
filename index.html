@@ -487,11 +487,15 @@
         <input type="date" id="tanggalKolab">
         <input type="time" id="waktuKolab">
         <button onclick="saveToDatabase()">Simpan</button>
-        <button onclick="belumTauSchedule()">Aku belum tau</button>
+        <button onclick="handleBelumTau()">Aku belum tau</button>
       </div>
     </div>
   </div>
-
+  <div class="card" id="lastPage" style="display: none;">
+        <h1>🎉 Terima kasih!</h1>
+        <!-- <p>Ini hadiah buat kamu~</p> -->
+        <img src="cat-thumbsup.gif" alt="Lucu kan?" style="width: 100%; border-radius: 20px;">
+  </div>
   <div id="persuadePopup" class="popup">
     <div class="popup-content">
       <button class="close-btn" onclick="closePersuadePopup()">&times;</button>
@@ -502,7 +506,13 @@
       </div>
     </div>
   </div>
-
+    <div id="thankYouPopup" class="popup">
+    <div class="popup-content">
+        <button class="close-btn" onclick="closeThankYouPopup()">&times;</button>
+        <h2>Noted 📝</h2>
+        <p>Jawabanmu sudah dicatat! 🎉</p>
+    </div>
+    </div>
   <script>
     const firebaseConfig = {
         apiKey: "AIzaSyB6Cx5OktOBK4yiWYVXCZg0fIl-PcwgYyE",
@@ -550,6 +560,27 @@
     function acceptAnyway() {
       closePersuadePopup();
       nextPage(true);
+    }
+
+    function handleBelumTau() {
+        const data = {
+            genre: selectedGenre,
+            game: selectedGame,
+            tanggal: null,
+            waktu: null,
+            note: "Belum tau",
+            timestamp: Date.now()
+        };
+
+        db.ref("pilihanKolab").push(data)
+            .then(() => {
+            closePopupSchedule();
+            showThankYouPopup(); // Tambahkan ini
+            })
+            .catch((error) => {
+            alert("Gagal menyimpan ke database 😢");
+            console.error(error);
+            });
     }
 
     function showGamePopup(genre) {
@@ -619,12 +650,23 @@
         .then(() => {
           alert(`Jadwal untuk ${selectedGame} berhasil disimpan!`);
           closePopupSchedule();
+          showThankYouPopup();
         })
         .catch((error) => {
           alert("Gagal menyimpan ke database 😢");
           console.error(error);
         });
     }
+    function showThankYouPopup() {
+        document.getElementById('thankYouPopup').style.display = 'flex';
+    }
+
+    function closeThankYouPopup() {
+        document.getElementById('thankYouPopup').style.display = 'none';
+        document.querySelectorAll('.card').forEach(el => el.style.display = 'none');
+        document.getElementById('lastPage').style.display = 'block';
+    }
+
   </script>
 </body>
 </html>
