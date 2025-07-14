@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Undangan Kolaborasi 🌸</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <style>
+    :root {
+      --pink: #ffcce7;
+      --blue: #cceeff;
+      --lavender: #e0ccff;
+      --text-color: #4b3f72;
+      --white: #ffffff;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(135deg, var(--pink), var(--blue), var(--lavender));
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-color);
+      padding: 20px;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #ff99cc;
+      font-weight: 800;
+    }
+
+    p {
+      margin-bottom: 30px;
+      font-size: 1.1rem;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .genre-btn, .collab-btn {
+      background: #ffe6f2;
+      border: none;
+      padding: 15px 25px;
+      border-radius: 15px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-color);
+      cursor: pointer;
+      transition: 0.3s;
+      width: 80%;
+    }
+
+    .genre-btn:hover, .collab-btn:hover {
+      background: #ffd1e6;
+    }
+
+    .popup {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      display: none;
+    }
+
+    .popup-content {
+      background: var(--white);
+      padding: 30px;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 500px;
+      position: relative;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px; right: 15px;
+      font-size: 1.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-color);
+    }
+
+    .game-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .game-item {
+      display: flex;
+      flex-direction: column;
+      border-radius: 15px;
+      overflow: hidden;
+      background: #fefefe;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      cursor: pointer;
+    }
+
+    .game-item img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+    }
+
+    .game-item span {
+      display: block;
+      padding: 10px;
+      font-weight: 700;
+    }
+
+    .schedule-form {
+      margin-top: 15px;
+      text-align: left;
+    }
+
+    .schedule-form input {
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .schedule-form button {
+      background: #d8b6ff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card" id="firstPage">
+    <h1>Hai Lapa, Aku mau mengajakmu collab :D</h1>
+    <p>aku buat dari web karena kalo dichat selalu nt :/ <br>jadi, kamu mau atau tidak?</p>
+    <div class="btn-group">
+      <button class="collab-btn" onclick="nextPage(true)">Iya, mau!</button>
+      <button class="collab-btn" onclick="showPersuadePopup()">Gamau..</button>
+    </div>
+  </div>
+
+  <div class="card" id="genrePage" style="display:none">
+    <h1>YAYYYY!! :DD<br>KAMU MAU GENRE APAA??</h1>
+    <!--<p>kamu moodnya bermain apa</p>-->
+    <div class="btn-group">
+      <button class="genre-btn" onclick="showGamePopup('chill')">🍃 Chill & Relax</button>
+      <button class="genre-btn" onclick="showGamePopup('story')">📖✏️ Story</button>
+    </div>
+  </div>
+
+  <div id="gamePopup" class="popup">
+    <div class="popup-content">
+      <button class="close-btn" onclick="closeGamePopup()">&times;</button>
+      <h2 id="gamePopupTitle">Pilih Game</h2>
+      <div id="gameList" class="game-list"></div>
+    </div>
+  </div>
+
+  <div id="popupSchedule" class="popup">
+    <div class="popup-content">
+      <button class="close-btn" onclick="closePopupSchedule()">&times;</button>
+      <h2 id="scheduleTitle">Setel Jadwal</h2>
+      <div class="schedule-form">
+        <input type="date" id="tanggalKolab">
+        <input type="time" id="waktuKolab">
+        <button onclick="saveToDatabase()">Simpan</button>
+        <button onclick="closePopupSchedule()">Aku belum tau</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="persuadePopup" class="popup">
+    <div class="popup-content">
+      <button class="close-btn" onclick="closePersuadePopup()">&times;</button>
+      <h2>Kenapa gamau?</h2>
+      <p>kamu yakin tidak mau? :/</p>
+      <div class="btn-group">
+        <button class="collab-btn" onclick="acceptAnyway()">yaudah mau deh.. (terpaksa)</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyB6Cx5OktOBK4yiWYVXCZg0fIl-PcwgYyE",
+        authDomain: "collab-2ed2f.firebaseapp.com",
+        databaseURL: "https://collab-2ed2f-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "collab-2ed2f",
+        storageBucket: "collab-2ed2f.firebasestorage.app",
+        messagingSenderId: "547090644503",
+        appId: "1:547090644503:web:14072a4eabf59170c86652"
+        };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const games = {
+      chill: [
+        { name: "Stardew Valley", img: "stardewvalley.jpg" },
+        { name: "Dinkum", img: "dinkum-og.jpg" }
+      ],
+      story: [
+        { name: "Bokura", img: "bokura.png" }
+      ]
+    };
+
+    let selectedGame = "";
+    let selectedGenre = "";
+
+    function nextPage(agree) {
+      document.getElementById('firstPage').style.display = 'none';
+      document.getElementById('genrePage').style.display = 'block';
+    }
+
+    function showPersuadePopup() {
+      document.getElementById('persuadePopup').style.display = 'flex';
+    }
+
+    function closePersuadePopup() {
+      document.getElementById('persuadePopup').style.display = 'none';
+    }
+
+    function acceptAnyway() {
+      closePersuadePopup();
+      nextPage(true);
+    }
+
+    function showGamePopup(genre) {
+      selectedGenre = genre;
+      const gameList = document.getElementById('gameList');
+      gameList.innerHTML = '';
+      games[genre].forEach(game => {
+        const item = document.createElement('div');
+        item.className = 'game-item';
+        item.innerHTML = `
+          <img src="${game.img}" alt="${game.name}" />
+          <span>${game.name}</span>`;
+        item.addEventListener('click', () => {
+          document.getElementById('gamePopup').style.display = 'none';
+          openSchedulePopup(game.name);
+        });
+        gameList.appendChild(item);
+      });
+      document.getElementById('gamePopup').style.display = 'flex';
+    }
+
+    function closeGamePopup() {
+      document.getElementById('gamePopup').style.display = 'none';
+    }
+
+    function openSchedulePopup(gameName) {
+      selectedGame = gameName;
+      document.getElementById('scheduleTitle').textContent = `Jadi kamu memilih ${gameName}, aku ngikutin jadwalmu aja`;
+      document.getElementById('popupSchedule').style.display = 'flex';
+    }
+
+    function closePopupSchedule() {
+      document.getElementById('popupSchedule').style.display = 'none';
+    }
+
+    function saveToDatabase() {
+      const tanggal = document.getElementById('tanggalKolab').value;
+      const waktu = document.getElementById('waktuKolab').value;
+
+      const data = {
+        genre: selectedGenre,
+        game: selectedGame,
+        tanggal: tanggal,
+        waktu: waktu,
+        timestamp: Date.now()
+      };
+
+      db.ref("pilihanKolab").push(data)
+        .then(() => {
+          alert(`Jadwal untuk ${selectedGame} berhasil disimpan! 💖`);
+          closePopupSchedule();
+        })
+        .catch((error) => {
+          alert("Gagal menyimpan ke database 😢");
+          console.error(error);
+        });
+    }
+  </script>
+</body>
+</html>

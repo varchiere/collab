@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Game Detail</title>
+</head>
+<body>
+  <h1 id="gameTitle"></h1>
+  <p id="genreName"></p>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const game = localStorage.getItem('selectedGame');
+      const genre = localStorage.getItem('selectedGenre');
+
+      document.getElementById('gameTitle').textContent = game || 'No game selected';
+      document.getElementById('genreName').textContent = genre ? `Genre: ${genre}` : '';
+    });
+  </script>
+</body>
+</html>
